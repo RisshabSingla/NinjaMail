@@ -11,11 +11,11 @@ const navLinks = [
     },
     {
         to: 'mailing',
-        display: 'Find a Doctor'
+        display: 'Our Services'
     },
     {
-        to: 'services',
-        display: 'Services'
+        to: 'Templates',
+        display: 'Templates'
     },
     {
         to: 'contact',
