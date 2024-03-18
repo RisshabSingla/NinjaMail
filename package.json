@@ -55,6 +55,8 @@
     "next": "13.5.1",
     "next-themes": "^0.2.1",
     "nextjs-toploader": "^1.4.2",
+    "nodemailer": "^6.9.12",
+    "nodemailer-mail-tracking": "^0.7.0",
     "postcss": "8.4.29",
     "prettier": "^3.0.3",
     "react": "18.2.0",

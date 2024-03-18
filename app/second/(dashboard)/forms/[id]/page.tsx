@@ -1,198 +1,95 @@
-import { GetFormById, GetFormWithSubmissions } from "@/actions/form";
-import FormLinkShare from "@/components/FormLinkShare";
-import VisitBtn from "@/components/VisitBtn";
-import React, { ReactNode } from "react";
-import { StatsCard } from "../../page";
-import { LuView } from "react-icons/lu";
-import { FaWpforms } from "react-icons/fa";
-import { HiCursorClick } from "react-icons/hi";
-import { TbArrowBounce } from "react-icons/tb";
-import { ElementsType, FormElementInstance } from "@/components/FormElements";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format, formatDistance } from "date-fns";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
+import { GetFormById } from '@/actions/form';
+const nodemailer = require('nodemailer');
 
-async function FormDetailPage({
-  params,
-}: {
-  params: {
-    id: string;
-  };
-}) {
+type Form = {
+  userId: string;
+  published: boolean;
+  name: string;
+  description: string;
+  content: string;
+  visits: number;
+  submissions: number;
+  shareURL: string;
+};
+
+async function FormDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
-  const form = await GetFormById(Number(id));
-  if (!form) {
-    throw new Error("form not found");
+
+  if (!id || typeof id !== 'string') {
+    throw new Error('Invalid form ID: must be a string');
   }
 
-  const { visits, submissions } = form;
+  try {
+    const form: Form | null = await GetFormById(Number(id));
 
-  let submissionRate = 0;
+    if (!form) {
+      throw new Error('Form not found');
+    }
 
-  if (visits > 0) {
-    submissionRate = (submissions / visits) * 100;
+    const { subject, htmlContent } = extractContent(form);
+
+    await sendEmail(subject, htmlContent, "devansh31shah@gmail.com");
+    console.log('Email sent successfully');
+  } catch (error) {
+    console.error('Error fetching form:', error);
+  }
+}
+
+async function sendEmail(subject: string, htmlContent: string, recipient: string) {
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com', // Replace with your SMTP server host
+    port: 465,
+    secure: true,
+    auth: {
+      user: 'shivamdave2903@gmail.com', // Replace with your email address
+      pass: 'nwes pwdc xdwx ozno', // Replace with your password (consider using environment variables)
+    },
+  });
+
+  const info = await transporter.sendMail({
+    from: 'shivamdave2903@gmail.com', // Replace with your email address
+    to: recipient,
+    subject: subject,
+    html: htmlContent,
+  });
+
+  console.log('Email sent:', info.messageId); // Log successful email sending
+}
+
+function extractContent(formData: Form): { subject: string; htmlContent: string } {
+  let contentString = '';
+  let subject = '';
+  let salutation = '';
+
+  try {
+    const contentArray = JSON.parse(formData.content);
+    contentArray.forEach((element) => {
+      if (element.type === 'TitleField' && element.extraAttributes) {
+        subject = element.extraAttributes.title || ''; // Handle potential undefined values
+      } else if (element.type === 'SubTitleField' && element.extraAttributes) {
+        salutation = element.extraAttributes.title || ''; // Handle potential undefined values
+      } else if (element.type === 'ParagraphField' && element.extraAttributes) {
+        contentString += `${element.extraAttributes.text || ''}\n`; // Add body text with newline
+      }
+    });
+  } catch (error) {
+    console.error('Error parsing content:', error);
+    contentString = ''; // Handle parsing errors appropriately
   }
 
-  const bounceRate = 100 - submissionRate;
+  // Replace with your desired background color (e.g., '#f5f5f5')
+  const backgroundColor = '#f5f5f5';
 
-  return (
-    <>
-      <div className="py-10 border-b border-muted">
-        <div className="flex justify-between container">
-          <h1 className="text-4xl font-bold truncate">{form.name}</h1>
-          <VisitBtn shareUrl={form.shareURL} />
-        </div>
-      </div>
-      <div className="py-4 border-b border-muted">
-        <div className="container flex gap-2 items-center justify-between">
-          <FormLinkShare shareUrl={form.shareURL} />
-        </div>
-      </div>
-      <div className="w-full pt-8 gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 container">
-        <StatsCard
-          title="Total visits"
-          icon={<LuView className="text-blue-600" />}
-          helperText="All time form visits"
-          value={visits.toLocaleString() || ""}
-          loading={false}
-          className="shadow-md shadow-blue-600"
-        />
+  const formattedContent = `${salutation ? `${salutation},\n` : ''}${subject}`;
 
-        <StatsCard
-          title="Total submissions"
-          icon={<FaWpforms className="text-yellow-600" />}
-          helperText="All time form submissions"
-          value={submissions.toLocaleString() || ""}
-          loading={false}
-          className="shadow-md shadow-yellow-600"
-        />
+  const htmlContent = `
+    <div style="background-color: ${backgroundColor}; padding: 20px;">
+      <p>${formattedContent}</p>
+      <p>${contentString}</p>
+    </div>
+  `;
 
-        <StatsCard
-          title="Submission rate"
-          icon={<HiCursorClick className="text-green-600" />}
-          helperText="Visits that result in form submission"
-          value={submissionRate.toLocaleString() + "%" || ""}
-          loading={false}
-          className="shadow-md shadow-green-600"
-        />
-
-        <StatsCard
-          title="Bounce rate"
-          icon={<TbArrowBounce className="text-red-600" />}
-          helperText="Visits that leaves without interacting"
-          value={bounceRate.toLocaleString() + "%" || ""}
-          loading={false}
-          className="shadow-md shadow-red-600"
-        />
-      </div>
-
-      <div className="container pt-10">
-        <SubmissionsTable id={form.id} />
-      </div>
-    </>
-  );
+  return { subject: formattedContent, htmlContent: htmlContent };
 }
 
 export default FormDetailPage;
-
-type Row = { [key: string]: string } & {
-  submittedAt: Date;
-};
-
-async function SubmissionsTable({ id }: { id: number }) {
-  const form = await GetFormWithSubmissions(id);
-
-  if (!form) {
-    throw new Error("form not found");
-  }
-
-  const formElements = JSON.parse(form.content) as FormElementInstance[];
-  const columns: {
-    id: string;
-    label: string;
-    required: boolean;
-    type: ElementsType;
-  }[] = [];
-
-  formElements.forEach((element) => {
-    switch (element.type) {
-      case "TextField":
-      case "NumberField":
-      case "TextAreaField":
-      case "DateField":
-      case "SelectField":
-      case "CheckboxField":
-        columns.push({
-          id: element.id,
-          label: element.extraAttributes?.label,
-          required: element.extraAttributes?.required,
-          type: element.type,
-        });
-        break;
-      default:
-        break;
-    }
-  });
-
-  const rows: Row[] = [];
-  form.FormSubmissions.forEach((submission) => {
-    const content = JSON.parse(submission.content);
-    rows.push({
-      ...content,
-      submittedAt: submission.createdAt,
-    });
-  });
-
-  return (
-    <>
-      <h1 className="text-2xl font-bold my-4">Submissions</h1>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((column) => (
-                <TableHead key={column.id} className="uppercase">
-                  {column.label}
-                </TableHead>
-              ))}
-              <TableHead className="text-muted-foreground text-right uppercase">Submitted at</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((row, index) => (
-              <TableRow key={index}>
-                {columns.map((column) => (
-                  <RowCell key={column.id} type={column.type} value={row[column.id]} />
-                ))}
-                <TableCell className="text-muted-foreground text-right">
-                  {formatDistance(row.submittedAt, new Date(), {
-                    addSuffix: true,
-                  })}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </>
-  );
-}
-
-function RowCell({ type, value }: { type: ElementsType; value: string }) {
-  let node: ReactNode = value;
-
-  switch (type) {
-    case "DateField":
-      if (!value) break;
-      const date = new Date(value);
-      node = <Badge variant={"outline"}>{format(date, "dd/MM/yyyy")}</Badge>;
-      break;
-    case "CheckboxField":
-      const checked = value === "true";
-      node = <Checkbox checked={checked} disabled />;
-      break;
-  }
-
-  return <TableCell>{node}</TableCell>;
-}

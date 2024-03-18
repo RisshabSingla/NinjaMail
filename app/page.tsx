@@ -39,7 +39,7 @@ function Home() {
                     Email Marketing Made Easy: We Do the Tech, You Do the Magic.
                   </h1>
                   <div className="p-2 m-2">
-                    <Link className="p-3 bg-blue-300 rounded-xl" href="second">
+                    <Link className="p-3 bg-blue-300 rounded-xl" href="/second">
                       Get started
                     </Link>
                   </div>
@@ -112,7 +112,7 @@ function Home() {
 
         <section id="Templates">
           <div className="container">
-            <div className="xl:w-[470px] mx-auto">
+            <div className="xl:w-[470px] p-8 mx-auto">
               <h2 className="text-3xl text-center p-2 font-bold	">Make Your Own Templates</h2>
               <p className="text-2xl text-center">
                 World-class care for everyone. Our health System offers unmatched, expert service.
@@ -143,7 +143,7 @@ function Home() {
 
         <section className="pt-4">
           <div className="container">
-            <div className="xl:w-[470px] mx-auto p-4">
+            <div className="xl:w-[470px] mx-auto p-16">
               <h2 className="text-3xl font-bold text-center">What our clients say</h2>
               <p className="text-2xl text-center">
                 World-class service for everyone. Our robust System offers unmatched,expert service.
@@ -215,7 +215,7 @@ function Header() {
               </Link>
             </div>
             <Link href="/second">
-              <button className="bg-primaryColor py-2 px-6 text-black font-[600] h-[44px] flex items-center justify-center rounded-[50px] bg-blue-100">
+              <button className="bg-primaryColor hover:bg-sky-400 py-2 px-6 text-black font-[600] h-[44px] flex items-center justify-center rounded-[50px] bg-blue-100">
                 Get Started
               </button>
             </Link>

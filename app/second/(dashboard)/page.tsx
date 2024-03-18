@@ -15,15 +15,20 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { BiRightArrowAlt } from "react-icons/bi";
 import { FaEdit } from "react-icons/fa";
+import CRMIntegrationButton from "./CRMIntegrationButton";
 
 export default function Home() {
   return (
+    <div className="container pt-4">
     <div className="container pt-4">
       {/* <Suspense fallback={<StatsCards loading={true} />}>
         <CardStatsWrapper />
       </Suspense> */}
       {/* <Separator className="my-6" /> */}
-      <h2 className="text-4xl font-bold col-span-2">Your forms</h2>
+      <div className="flex flex-row justify-between items-center ">
+      <h2 className="text-4xl font-bold col-span-2 ">Your Templates</h2>
+      <CRMIntegrationButton />
+      </div>
       <Separator className="my-6" />
       <div className="grid gric-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <CreateFormBtn />
@@ -35,6 +40,14 @@ export default function Home() {
           <FormCards />
         </Suspense>
       </div>
+    </div>
+    {/* <div className="flex justify-center mt-4 p-4">
+        <Link href="/third">
+          <button className="bg-primaryColor py-2 px-6 text-black font-[600] h-[44px] flex items-center justify-center rounded-[50px] bg-blue-100">
+            To Mail
+          </button>
+        </Link>
+      </div> */}
     </div>
   );
 }
@@ -109,6 +122,7 @@ export function StatsCard({
   icon: ReactNode;
 }) {
   return (
+    <div>
     <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
@@ -126,6 +140,8 @@ export function StatsCard({
         <p className="text-xs text-muted-foreground pt-1">{helperText}</p>
       </CardContent>
     </Card>
+    
+    </div>
   );
 }
 
@@ -135,6 +151,7 @@ function FormCardSkeleton() {
 
 async function FormCards() {
   const forms = await GetForms();
+  console.log(forms);
   return (
     <>
       {forms.map((form) => (
@@ -146,6 +163,7 @@ async function FormCards() {
 
 function FormCard({ form }: { form: Form }) {
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 justify-between">
@@ -174,7 +192,7 @@ function FormCard({ form }: { form: Form }) {
         {form.published && (
           <Button asChild className="w-full mt-2 text-md gap-4">
             <Link href={`/second/forms/${form.id}`}>
-              View submissions <BiRightArrowAlt />
+              Campaigning <BiRightArrowAlt />
             </Link>
           </Button>
         )}
@@ -187,5 +205,9 @@ function FormCard({ form }: { form: Form }) {
         )}
       </CardFooter>
     </Card>
+    
+    </>
+  
+
   );
 }

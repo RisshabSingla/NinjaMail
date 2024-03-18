@@ -15,7 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 const type: ElementsType = "SubTitleField";
 
 const extraAttributes = {
-  title: "SubTitle field",
+  title: "Salutation",
 };
 
 const propertiesSchema = z.object({
@@ -31,7 +31,7 @@ export const SubTitleFieldFormElement: FormElement = {
   }),
   designerBtnElement: {
     icon: LuHeading2,
-    label: "SubTitle field",
+    label: "Salutation",
   },
   designerComponent: DesignerComponent,
   formComponent: FormComponent,
