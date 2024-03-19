@@ -1,6 +1,7 @@
 import { GetFormById } from '@/actions/form';
 const nodemailer = require('nodemailer');
 
+
 type Form = {
   userId: string;
   published: boolean;
@@ -28,14 +29,19 @@ async function FormDetailPage({ params }: { params: { id: string } }) {
 
     const { subject, htmlContent } = extractContent(form);
 
-    await sendEmail(subject, htmlContent, "devansh31shah@gmail.com");
+    await sendEmail(subject, htmlContent, [
+      'azure@example.com',
+      'vauxoo@yourcompany.example.com',
+      'brandon.freeman55@example.com',
+      'devansh31shah@gmail.com'
+    ]);
     console.log('Email sent successfully');
   } catch (error) {
     console.error('Error fetching form:', error);
   }
 }
 
-async function sendEmail(subject: string, htmlContent: string, recipient: string) {
+async function sendEmail(subject: string, htmlContent: string, recipient: string[]) {
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com', // Replace with your SMTP server host
     port: 465,
@@ -45,14 +51,20 @@ async function sendEmail(subject: string, htmlContent: string, recipient: string
       pass: 'nwes pwdc xdwx ozno', // Replace with your password (consider using environment variables)
     },
   });
+  const messageId = Math.random().toString(36).substring(7);
 
   const info = await transporter.sendMail({
     from: 'shivamdave2903@gmail.com', // Replace with your email address
-    to: recipient,
+    to: recipient.join(','), // Join the array of recipients with commas
     subject: subject,
     html: htmlContent,
+    dsn: {
+      id: messageId, // Use the generated message ID
+      return: 'headers',
+      notify: ['success', 'failure', 'delay'], 
+      recipient: 'shivamdave2903@gmail.com' // Sender's email for notification
+    }
   });
-
   console.log('Email sent:', info.messageId); // Log successful email sending
 }
 
@@ -74,20 +86,23 @@ function extractContent(formData: Form): { subject: string; htmlContent: string 
     });
   } catch (error) {
     console.error('Error parsing content:', error);
-    contentString = ''; // Handle parsing errors appropriately
+    contentString = ''; 
   }
 
-  // Replace with your desired background color (e.g., '#f5f5f5')
   const backgroundColor = '#f5f5f5';
 
   const formattedContent = `${salutation ? `${salutation},\n` : ''}${subject}`;
 
   const htmlContent = `
-    <div style="background-color: ${backgroundColor}; padding: 20px;">
-      <p>${formattedContent}</p>
-      <p>${contentString}</p>
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
+    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px;">
+      ${salutation && `<p style="font-size: 16px; margin-bottom: 10px;">${salutation}</p>`}
+      ${subject && `<h2 style="font-size: 24px; margin-bottom: 20px;">${subject}</h2>`}
+      ${contentString && `<p style="font-size: 16px;">${contentString}</p>`}
     </div>
-  `;
+  </div>
+`;
+
 
   return { subject: formattedContent, htmlContent: htmlContent };
 }
